@@ -20,6 +20,15 @@ Dependencies
 * wget
 * bc
 
+Example
+-------
+
+You can try it on our real life data. :)
+
+```
+wget -qO - http://pastebin.com/raw.php?i=t4vxUNiX | tr -d '\r'| ./books.sh -
+```
+
 Warning
 -------
 
