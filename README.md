@@ -29,6 +29,17 @@ You can try it on our real life data. :)
 wget -qO - http://pastebin.com/raw.php?i=t4vxUNiX | tr -d '\r'| ./books.sh -
 ```
 
+SQL
+---
+
+If you want to use SQL output, just create these tables:
+
+```
+CREATE TABLE books (isbn varchar(13) NOT NULL, title text NOT NULL, info text, PRIMARY KEY(isbn));
+CREATE TABLE books_authors (isbn varchar(13) NOT NULL, author varchar(32) NOT NULL, PRIMARY KEY(isbn,author));
+CREATE TABLE books_translations (isbn varchar(13) NOT NULL, translation varchar(32) NOT NULL, PRIMARY KEY(isbn,translation));
+```
+
 Warning
 -------
 
