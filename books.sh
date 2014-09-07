@@ -6,9 +6,10 @@
 
 # Standard help function
 function usage() {
-	echo "Usage: $0 [--sql] BARCODE"
+	echo "Usage: $0 [--sql] BARCODES|-"
 	echo "Retrieves information about given book and shows it."
-	echo "If --sql flag is present output is in SQL format."
+	echo "If --sql flag is present, output is in SQL format."
+	echo "If - is given instead of barcode, barcodes are read from stdandard input"
 	echo "Exit value: 0 - success, 1 - book not found, 2 - input error"
 }
 
@@ -147,25 +148,44 @@ function gen_isbn10() {
 	echo $1 | sed -re 's/^978(.{9}).$/\1'"$CHECKSUM"'/'
 }
 
-ISBN=$1
-ISBN10="`gen_isbn10 $ISBN`"
-
+EXIT_VALUE=0
 # In case we have other web site providing information about books, we can just write function and add it to list
 METHODS="aleph_nkp_cz"
 
-# Try each method for both ISBN types until one succeeds (or all fail)
-for METHOD in $METHODS;
+# Iterate barcodes given on command line or stdin
+while [ $# -gt 0 ];
 do
-	get_$METHOD $ISBN && break
-	get_$METHOD $ISBN10 && break
+	# Check if barcode is hypen
+	if [ "$1" = "-" ];
+	then
+		# Read from stdin; end on EOF
+		read ISBN || break
+	else
+		# Read from command line
+		ISBN=$1
+		# Move to next argument
+		shift
+	fi
+
+	ISBN10="`gen_isbn10 $ISBN`"
+
+	# Try each method for both ISBN types until one succeeds (or all fail)
+	for METHOD in $METHODS;
+	do
+		get_$METHOD $ISBN && break
+		get_$METHOD $ISBN10 && break
+	done
+
+	if [ -z "$TITLE" ];
+	then
+		# All methods failed
+		echo "Error: book $ISBN not found" >&2
+		EXIT_VALUE=1
+	else
+		# Output
+		output_book_$OUTPUT_TYPE
+	fi
+
 done
 
-if [ -z "$TITLE" ];
-then
-	# All methods failed
-	echo "Error: book $ISBN not found" >&2
-	exit 1
-fi
-
-# Output
-output_book_$OUTPUT_TYPE
+exit $EXIT_VALUE
